@@ -2,10 +2,10 @@
 # Description: this script contains the data access object for the visits table
 # mostly adapted from Andrew's code but updated to fit my two table design. 
 
-import mysql.connector
-import dbconfig as cfg
+import mysql.connector # library to connect to sql db.
+import dbconfig as cfg # my config file wth my sql connection details.
 
-class VisitDAO:
+class VisitDAO: # 
     connection = ""
     cursor = ""
     host =     ""
@@ -46,7 +46,7 @@ class VisitDAO:
         cursor.execute(sql, (countryData['name'],))      # the comma makes it a tuple, required by mysql connector
         result = cursor.fetchone()                        # fetchone returns a single row or None if not found: https://dev.mysql.com/doc/connector-python/en/connector-python-api-mysqlcursor-fetchone.html
 
-        if result:
+        if result: # if the fetchone returns something.
             # country already exists in our db, no need to insert again
             self.closeAll()
             return self.convertToCountryDict(result)  # convert the row to a dictionary and return it
@@ -72,12 +72,11 @@ class VisitDAO:
         self.closeAll()
         return returnArray
 
-    # ok now the vidit methods 
+    # ok now the visit methods 
 
     def getAllVisits(self):
         cursor = self.getcursor()
-        # JOIN combines rows from visits and countries wherever country_id matches
-        # this means we get country details alongside each visit in one query
+        # join so we can get info from both tables.
         # see: https://www.w3schools.com/sql/sql_join.asp
         sql = """
             SELECT visits.id, visits.date_visited, visits.notes,
@@ -121,13 +120,13 @@ class VisitDAO:
         return visit
 
     def updateVisit(self, id, visit):
-        # updates an existing visit row - note we only allow changing date and notes
+        # updates an existing visit row - note we only allow changing date and notes because the country facts are fixed. 
         # country cannot be changed on a visit, you would delete and recreate instead
         cursor = self.getcursor()
         sql = "UPDATE visits SET date_visited = %s, notes = %s WHERE id = %s"
         values = (visit['date_visited'], visit.get('notes', ''), id)
         cursor.execute(sql, values)
-        self.connection.commit()  # commit is required for any change that modifies data
+        self.connection.commit()  # commit is required for any change that modifies data https://dev.mysql.com/doc/connector-python/en/connector-python-api-mysqlconnection-commit.html 
         self.closeAll()
 
     def deleteVisit(self, id):
@@ -138,8 +137,6 @@ class VisitDAO:
         self.connection.commit()
         self.closeAll()
 
-    # ---- converters ----
-
     def convertToCountryDict(self, row):
         # mysql returns rows as plain tuples e.g. (1, 'France', 'Paris', 'Europe', 'flag.png')
         # this converts that tuple into a dictionary so it can be returned as JSON
@@ -148,7 +145,7 @@ class VisitDAO:
 
     def convertToVisitDict(self, row):
         # visits JOIN countries returns a flat tuple with columns from both tables
-        # we manually map each position in the tuple to a named key
+        # we manually map each position in the tuple to a named key (i.e. id, date_visited, notes, name, capital, region, flag_url)
         # the country details are nested inside their own dictionary within the visit
         return {
             'id':           row[0],
