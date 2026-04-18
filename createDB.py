@@ -17,7 +17,7 @@ db = mysql.connector.connect(
 
 cursor = db.cursor()
 
-cursor.execute("create DATABASE wsaa")
+cursor.execute("create DATABASE IF NOT EXISTS wsaa")
 
 db.close()
 cursor.close()

@@ -1,0 +1,256 @@
+    <html>
+        <head>
+            <title>My Travel Tracker</title>
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+            <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        </head>
+        <body>
+            <div class="container mt-4">
+                <h1>My Travel Tracker</h1>
+                <div><button id="showCreateButton" class="btn btn-primary mb-3" onclick="showCreate()">Add Visit</button></div>
+                <div>
+                    <table class="table" id="visitTable">
+                        <tr>
+                            <th>ID</th>
+                            <th>Country</th>
+                            <th>Capital</th>
+                            <th>Region</th>
+                            <th>Flag</th>
+                            <th>Date Visited</th>
+                            <th>Notes</th>
+                            <th>Update</th>
+                            <th>Delete</th>
+                        </tr>
+                    </table>
+                </div>
+
+                <div id='createUpdateForm' style="display: none">
+                    <h2>
+                        <span id="createLabel">Add a</span>
+                        <span id="updateLabel">Update</span> Visit
+                    </h2>
+                    <input type="hidden" name="id"/>
+
+                    Country <select name="country" class="form-control mb-2"></select>
+                    Date Visited <input type="date" name="date_visited" class="form-control mb-2"/>
+                    Notes <input type="text" name="notes" class="form-control mb-2"/>
+
+                    <span><button id="doCreateButton" class="btn btn-success" onclick="doCreate()">Create</button></span>
+                    <span><button id="doUpdateButton" class="btn btn-warning" onclick="doUpdate()">Update</button></span>
+                    <button class="btn btn-secondary" onclick="showViewAll()">Cancel</button>
+                </div>
+            </div>
+        </body>
+        <script>
+        // ---- show/hide functions ----
+
+        function showCreate(){
+            document.getElementById('showCreateButton').style.display = "none"
+            document.getElementById('visitTable').style.display = "none"
+            document.getElementById('createUpdateForm').style.display = "block"
+            document.getElementById('createLabel').style.display = "inline"
+            document.getElementById('updateLabel').style.display = "none"
+            document.getElementById('doCreateButton').style.display = "inline"
+            document.getElementById('doUpdateButton').style.display = "none"
+            loadCountryDropdown()
+        }
+
+        function showViewAll(){
+            document.getElementById('showCreateButton').style.display = "block"
+            document.getElementById('visitTable').style.display = "block"
+            document.getElementById('createUpdateForm').style.display = "none"
+        }
+
+        function showUpdate(buttonElement){
+            document.getElementById('showCreateButton').style.display = "none"
+            document.getElementById('visitTable').style.display = "none"
+            document.getElementById('createUpdateForm').style.display = "block"
+            document.getElementById('createLabel').style.display = "none"
+            document.getElementById('updateLabel').style.display = "inline"
+            document.getElementById('doCreateButton').style.display = "none"
+            document.getElementById('doUpdateButton').style.display = "inline"
+
+            var rowElement = buttonElement.parentNode.parentNode
+            var visit = getVisitFromRow(rowElement)
+            populateFormWithVisit(visit)
+        }
+
+        // ---- form functions ----
+
+        function doCreate(){
+            var form = document.getElementById('createUpdateForm')
+            var visit = {}
+            visit.country = form.querySelector('select[name="country"]').value
+            visit.date_visited = form.querySelector('input[name="date_visited"]').value
+            visit.notes = form.querySelector('input[name="notes"]').value
+            createVisitAjax(visit)
+        }
+
+        function doUpdate(){
+            var visit = getVisitFromForm()
+            var rowElement = document.getElementById(visit.id)
+            updateVisitAjax(visit)
+            setVisitInRow(rowElement, visit)
+            clearForm()
+            showViewAll()
+        }
+
+        function doDelete(r){
+            var tableElement = document.getElementById('visitTable')
+            var rowElement = r.parentNode.parentNode
+            var index = rowElement.rowIndex
+            deleteVisitAjax(rowElement.getAttribute("id"))
+            tableElement.deleteRow(index)
+        }
+
+        function clearForm(){
+            var form = document.getElementById('createUpdateForm')
+            form.querySelector('select[name="country"]').value = ''
+            form.querySelector('input[name="date_visited"]').value = ''
+            form.querySelector('input[name="notes"]').value = ''
+        }
+
+        // ---- table functions ----
+
+        function addVisitToTable(visit){
+            var tableElement = document.getElementById('visitTable')
+            var rowElement = tableElement.insertRow(-1)
+            rowElement.setAttribute('id', visit.id)
+            rowElement.insertCell(0).innerHTML = visit.id
+            rowElement.insertCell(1).innerHTML = visit.country.name
+            rowElement.insertCell(2).innerHTML = visit.country.capital
+            rowElement.insertCell(3).innerHTML = visit.country.region
+            rowElement.insertCell(4).innerHTML = '<img src="' + visit.country.flag_url + '" width="40"/>'
+            rowElement.insertCell(5).innerHTML = visit.date_visited
+            rowElement.insertCell(6).innerHTML = visit.notes
+            rowElement.insertCell(7).innerHTML = '<button class="btn btn-sm btn-warning" onclick="showUpdate(this)">Update</button>'
+            rowElement.insertCell(8).innerHTML = '<button class="btn btn-sm btn-danger" onclick="doDelete(this)">Delete</button>'
+        }
+
+        function getVisitFromRow(rowElement){
+            var visit = {}
+            visit.id           = rowElement.getAttribute('id')
+            visit.date_visited = rowElement.cells[5].firstChild.textContent
+            visit.notes        = rowElement.cells[6].firstChild.textContent
+            return visit
+        }
+
+        function setVisitInRow(rowElement, visit){
+            rowElement.cells[5].firstChild.textContent = visit.date_visited
+            rowElement.cells[6].firstChild.textContent = visit.notes
+        }
+
+        function populateFormWithVisit(visit){
+            var form = document.getElementById('createUpdateForm')
+            form.querySelector('input[name="id"]').value           = visit.id
+            form.querySelector('input[name="date_visited"]').value = visit.date_visited
+            form.querySelector('input[name="notes"]').value        = visit.notes
+        }
+
+        function getVisitFromForm(){
+            var form = document.getElementById('createUpdateForm')
+            var visit = {}
+            visit.id           = form.querySelector('input[name="id"]').value
+            visit.date_visited = form.querySelector('input[name="date_visited"]').value
+            visit.notes        = form.querySelector('input[name="notes"]').value
+            return visit
+        }
+
+        // ---- dropdown ----
+
+        function loadCountryDropdown(){
+            // calls the REST countries API to populate the country dropdown
+            $.ajax({
+                "url": "https://restcountries.com/v3.1/all?fields=name",
+                "method": "GET",
+                "dataType": "JSON",
+                "success": function(result){
+                    // sort countries alphabetically by common name
+                    result.sort(function(a, b){
+                        return a.name.common.localeCompare(b.name.common)
+                    })
+                    var select = document.querySelector('select[name="country"]')
+                    select.innerHTML = '<option value="">-- Select a country --</option>'
+                    for (var country of result){
+                        var option = document.createElement('option')
+                        option.value = country.name.common
+                        option.text  = country.name.common
+                        select.appendChild(option)
+                    }
+                },
+                "error": function(xhr, status, error){
+                    console.log("error loading countries: " + error)
+                }
+            })
+        }
+
+        // ---- ajax functions ----
+
+        function getAllAjax(){
+            $.ajax({
+                "url": "/visits",
+                "method": "GET",
+                "dataType": "JSON",
+                "success": function(result){
+                    for (var visit of result){
+                        addVisitToTable(visit)
+                    }
+                },
+                "error": function(xhr, status, error){
+                    console.log("error: " + status + " msg: " + error)
+                }
+            })
+        }
+
+        function createVisitAjax(visit){
+            $.ajax({
+                "url": "/visits",
+                "method": "POST",
+                "data": JSON.stringify(visit),
+                "dataType": "JSON",
+                contentType: "application/json; charset=utf-8",
+                "success": function(result){
+                    addVisitToTable(result)
+                    clearForm()
+                    showViewAll()
+                },
+                "error": function(xhr, status, error){
+                    console.log("error: " + status + " msg: " + error)
+                }
+            })
+        }
+
+        function updateVisitAjax(visit){
+            $.ajax({
+                "url": "/visits/" + encodeURI(visit.id),
+                "method": "PUT",
+                "data": JSON.stringify(visit),
+                "dataType": "JSON",
+                contentType: "application/json; charset=utf-8",
+                "success": function(result){
+                    console.log(result)
+                },
+                "error": function(xhr, status, error){
+                    console.log("error: " + status + " msg: " + error)
+                }
+            })
+        }
+
+        function deleteVisitAjax(id){
+            $.ajax({
+                "url": "/visits/" + encodeURI(id),
+                "method": "DELETE",
+                "dataType": "JSON",
+                contentType: "application/json; charset=utf-8",
+                "success": function(result){
+                    console.log(result)
+                },
+                "error": function(xhr, status, error){
+                    console.log("error: " + status + " msg: " + error)
+                }
+            })
+        }
+
+        getAllAjax();
+        </script>
+    </html>
