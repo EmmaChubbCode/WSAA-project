@@ -32,26 +32,31 @@ def findById(id):
         abort(404)
     return jsonify(foundVisit)
 
-# curl  -i -H "Content-Type:application/json" -X POST -d "{\"country\":\"France\",\"date_visited\":\"2024-03-12\",\"notes\":\"Loved it\"}" http://127.0.0.1:5000/visits
+# curl  -i -H "Content-Type:application/json" -X POST -d "{\"country\":\"ALB\",\"date_visited\":\"2024-03-12\",\"notes\":\"Loved it\"}" http://127.0.0.1:5000/visits
 @app.route('/visits', methods=['POST'])
 @cross_origin()
 def createVisit():
     if not request.json:
         abort(400) # bad request, no json sent
 
-    # get the country name the user typed in
-    countryName = request.json.get('country')
-    if not countryName:
-        abort(400)  # country name is required
+    # get the country code sent from the dropdown e.g. "ALB" for Albania
+    # the user sees the country name in the dropdown but the code is what gets submitted
+    # we use the code instead of the name because /alpha/ is a direct lookup and more reliable than /name/
+    countryCode = request.json.get('country')
+    if not countryCode:
+        abort(400)  # country code is required
 
-    # call the REST Countries API to get country details https://restcountries.com/
-    apiResponse = requests.get(f"https://restcountries.com/v3.1/name/{countryName}") # copied from api docs
-    
-    # take first result returned by api
-    apiData = apiResponse.json()[0]
+    # call the REST Countries API using the 3 letter country code - https://restcountries.com/
+    apiResponse = requests.get(f"https://restcountries.com/v3.1/alpha/{countryCode}")
 
+    # the alpha endpoint can return a list or a single object depending on the country
+    response = apiResponse.json()
+    apiData = response[0] if isinstance(response, list) else response
+
+    print("status code:", apiResponse.status_code)   # <-- add here
+    print("response text:", apiResponse.text)
     # pull out the bits we want from the API response
-    # you can see structure of the api response here: https://restcountries.com/v3.1/name/France
+    # you can see structure of the api response here: https://restcountries.com/v3.1/alpha/FRA
     countryData = {
         'name':     apiData['name']['common'],
         'capital':  apiData['capital'][0] if 'capital' in apiData else 'N/A',
@@ -110,3 +115,5 @@ def getAllCountries():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+

@@ -1,0 +1,414 @@
+/* Used Claude to generate this CSS file with the following prompt:https://claude.ai/share/d5ccf9d0-c125-4964-81e3-095ac2759709 
+/* =============================================
+   MY TRAVEL TRACKER — Stylesheet
+   Aesthetic: Vintage travel journal meets
+   modern editorial. Deep navy, warm ivory,
+   gold accents.
+   ============================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap');
+
+/* ---- CSS Variables ---- */
+:root {
+  --navy:       #0d1f3c;
+  --navy-mid:   #162947;
+  --navy-light: #1e3a5f;
+  --gold:       #c9a84c;
+  --gold-light: #e2c47a;
+  --ivory:      #f8f4ec;
+  --ivory-dark: #ede8dc;
+  --text-dark:  #0d1f3c;
+  --text-mid:   #3a4a5c;
+  --text-light: #8a9bb0;
+  --danger:     #c0392b;
+  --danger-mid: #e74c3c;
+  --success:    #1a7a4a;
+  --success-mid:#22a05e;
+  --shadow-sm:  0 2px 8px rgba(13,31,60,0.10);
+  --shadow-md:  0 6px 24px rgba(13,31,60,0.15);
+  --shadow-lg:  0 16px 48px rgba(13,31,60,0.20);
+  --radius:     10px;
+  --transition: 0.22s ease;
+}
+
+/* ---- Reset & Base ---- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background-color: var(--ivory);
+  color: var(--text-dark);
+  min-height: 100vh;
+  background-image:
+    radial-gradient(ellipse at 80% 0%, rgba(201,168,76,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at 10% 90%, rgba(13,31,60,0.06) 0%, transparent 55%);
+}
+
+/* ---- Container ---- */
+.container {
+  max-width: 1060px;
+  padding: 0 24px 60px;
+}
+
+/* ---- Page Header ---- */
+h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+  color: var(--navy);
+  letter-spacing: -0.5px;
+  padding: 48px 0 6px;
+  position: relative;
+  display: inline-block;
+}
+
+h1::after {
+  content: '';
+  display: block;
+  margin-top: 10px;
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--gold), var(--gold-light));
+  border-radius: 2px;
+}
+
+/* Subtitle line under the heading */
+h1::before {
+  content: '✈  Your personal journey log';
+  display: block;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+
+/* ---- Add Visit Button ---- */
+#showCreateButton {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--navy);
+  color: var(--gold-light);
+  border: none;
+  border-radius: var(--radius);
+  padding: 12px 26px;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+#showCreateButton::before {
+  content: '＋ ';
+  font-size: 1rem;
+  line-height: 1;
+}
+
+#showCreateButton:hover {
+  background: var(--navy-light);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+#showCreateButton:active {
+  transform: translateY(0);
+}
+
+/* ---- Table ---- */
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #ffffff;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  margin-top: 4px;
+}
+
+/* Header row */
+.table thead tr,
+.table tr:first-child {
+  background: var(--navy);
+}
+
+.table tr:first-child th,
+.table thead th {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold-light);
+  padding: 16px 18px;
+  border: none;
+  white-space: nowrap;
+}
+
+/* Data rows */
+.table tbody tr,
+.table tr:not(:first-child) {
+  border-bottom: 1px solid var(--ivory-dark);
+  transition: background var(--transition);
+}
+
+.table tbody tr:last-child,
+.table tr:last-child {
+  border-bottom: none;
+}
+
+.table tbody tr:hover,
+.table tr:not(:first-child):hover {
+  background: #fdf9f1;
+}
+
+.table td {
+  padding: 14px 18px;
+  font-size: 0.92rem;
+  color: var(--text-mid);
+  vertical-align: middle;
+  border: none;
+}
+
+/* Flag cell */
+.table td img {
+  border-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+  display: block;
+}
+
+/* ID column - styled as a subtle badge */
+.table td:first-child {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-light);
+  letter-spacing: 0.04em;
+}
+
+/* Country name - bold */
+.table td:nth-child(2) {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--navy);
+}
+
+/* ---- Action Buttons in Table ---- */
+.btn-sm {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.74rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  padding: 7px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: filter var(--transition), transform var(--transition), box-shadow var(--transition);
+}
+
+.btn-sm:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+}
+
+.btn-sm:active {
+  transform: translateY(0);
+}
+
+.btn-warning {
+  background: var(--gold);
+  color: var(--navy);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+}
+
+/* ---- Create / Update Form Panel ---- */
+#createUpdateForm {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 36px 40px 40px;
+  box-shadow: var(--shadow-lg);
+  max-width: 560px;
+  margin-top: 8px;
+  border-top: 4px solid var(--gold);
+  animation: slideIn 0.28s ease;
+
+  /* overflow must NOT be hidden — lets the dropdown popup escape */
+  overflow: visible;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+#createUpdateForm h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 28px;
+}
+
+/* Form labels */
+#createUpdateForm > label,
+#createUpdateForm > span:not([id]) {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-mid);
+  margin-bottom: 6px;
+}
+
+/* The text nodes (Country, Date Visited, Notes labels) */
+#createUpdateForm {
+  line-height: 1.7;
+}
+
+/* Inputs & Select */
+.form-control {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  color: var(--text-dark);
+  background: var(--ivory);
+  border: 1.5px solid var(--ivory-dark);
+  border-radius: 8px;
+  padding: 11px 14px;
+  width: 100%;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+select.form-control {
+  /* Restore native select rendering so text is not squished */
+  appearance: auto;
+  -webkit-appearance: auto;
+  background-image: none;
+
+  padding: 11px 14px;
+  height: auto;
+  min-height: 48px;
+  line-height: 1.6;
+  cursor: pointer;
+  position: relative;
+  z-index: 100;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(201,168,76,0.18);
+  background: #ffffff;
+}
+
+/* ---- Form Action Buttons ---- */
+#doCreateButton,
+#doUpdateButton {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 500;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 12px 28px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform var(--transition), box-shadow var(--transition), filter var(--transition);
+}
+
+#doCreateButton {
+  background: var(--navy);
+  color: var(--gold-light);
+  box-shadow: var(--shadow-sm);
+}
+
+#doUpdateButton {
+  background: var(--gold);
+  color: var(--navy);
+  box-shadow: var(--shadow-sm);
+}
+
+#doCreateButton:hover,
+#doUpdateButton:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  filter: brightness(1.08);
+}
+
+/* Cancel button */
+#createUpdateForm .btn-secondary {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  padding: 12px 22px;
+  border: 1.5px solid var(--ivory-dark);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-mid);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+#createUpdateForm .btn-secondary:hover {
+  background: var(--ivory-dark);
+  color: var(--navy);
+}
+
+/* ---- Spacing utilities ---- */
+.mb-2 { margin-bottom: 14px !important; }
+.mb-3 { margin-bottom: 20px !important; }
+.mt-4 { margin-top: 36px !important; }
+
+/* ---- Empty state ---- */
+.table tr:only-child td {
+  text-align: center;
+  color: var(--text-light);
+  padding: 40px;
+  font-style: italic;
+}
+
+/* ---- Scrollbar styling ---- */
+::-webkit-scrollbar { width: 7px; }
+::-webkit-scrollbar-track { background: var(--ivory-dark); }
+::-webkit-scrollbar-thumb { background: var(--navy-light); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--navy); }
+
+/* ---- Responsive ---- */
+@media (max-width: 720px) {
+  #createUpdateForm {
+    padding: 24px 20px 28px;
+  }
+
+  .table td, .table th {
+    padding: 12px 10px;
+    font-size: 0.82rem;
+  }
+
+  h1 { font-size: 1.8rem; }
+
+  /* Hide less important columns on small screens */
+  .table th:nth-child(3),
+  .table td:nth-child(3),
+  .table th:nth-child(4),
+  .table td:nth-child(4) {
+    display: none;
+  }
+}
