@@ -1,13 +1,16 @@
 <html>
     <head>
         <title>My Travel Tracker</title>
+        <!-- load jquery library which contains premade functions for making ajax calls and manipulating the DOM. see: https://api.jquery.com/ -->
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <!-- this is my custom css file. -->
         <link rel="stylesheet" href="style.css">
     </head>
         <body>
             <div class="container mt-4">
                 <h1>My Travel Tracker</h1>
+                <!-- when user clicks this button, it will show the create form and hide the table (see showCreate() function below) -->
                 <div><button id="showCreateButton" class="btn btn-primary mb-3" onclick="showCreate()">Add Visit</button></div>
                 <div>
                     <table class="table" id="visitTable">
@@ -24,18 +27,19 @@
                         </tr>
                     </table>
                 </div>
-
+                <!--this is the update/create form.-->
                 <div id='createUpdateForm' style="display: none">
                     <h2>
                         <span id="createLabel">Add a</span>
                         <span id="updateLabel">Update</span> Visit
                     </h2>
                     <input type="hidden" name="id"/>
-
+                    <!-- country is populated from a dropdown that is loaded with API data. -->
                     Country <select name="country" class="form-control mb-2"></select>
+                    <!-- user inputs-->
                     Date Visited <input type="date" name="date_visited" class="form-control mb-2"/>
                     Notes <input type="text" name="notes" class="form-control mb-2"/>
-
+                    <!-- buttons for creating/updating visit and canceling out of form. -->
                     <span><button id="doCreateButton" class="btn btn-success" onclick="doCreate()">Create</button></span>
                     <span><button id="doUpdateButton" class="btn btn-warning" onclick="doUpdate()">Update</button></span>
                     <button class="btn btn-secondary" onclick="showViewAll()">Cancel</button>
@@ -44,24 +48,25 @@
         </body>
         <script>
         // ---- show/hide functions ----
-
         function showCreate(){
+           //first hide the talbe and show the form
             document.getElementById('showCreateButton').style.display = "none"
             document.getElementById('visitTable').style.display = "none"
             document.getElementById('createUpdateForm').style.display = "block"
+            // configure the elements of the create/update form.
             document.getElementById('createLabel').style.display = "inline"
             document.getElementById('updateLabel').style.display = "none"
             document.getElementById('doCreateButton').style.display = "inline"
             document.getElementById('doUpdateButton').style.display = "none"
             loadCountryDropdown()
         }
-
+        // return to view all visits (hide form, show table). otherwise it just hangs despite the new addition.
         function showViewAll(){
             document.getElementById('showCreateButton').style.display = "block"
             document.getElementById('visitTable').style.display = "block"
             document.getElementById('createUpdateForm').style.display = "none"
         }
-
+        // when user clicks update button on a visit, show the form and populate it with the visit's current data.
         function showUpdate(buttonElement){
             document.getElementById('showCreateButton').style.display = "none"
             document.getElementById('visitTable').style.display = "none"
@@ -77,7 +82,7 @@
         }
 
         // ---- form functions ----
-
+        // collect form data send as a POST request  to create new visit. 
         function doCreate(){
             var form = document.getElementById('createUpdateForm')
             var visit = {}
@@ -86,7 +91,7 @@
             visit.notes = form.querySelector('input[name="notes"]').value
             createVisitAjax(visit)
         }
-
+        // collect form data and send as a PUT request to update existing visit.
         function doUpdate(){
             var visit = getVisitFromForm()
             var rowElement = document.getElementById(visit.id)
@@ -95,7 +100,7 @@
             clearForm()
             showViewAll()
         }
-
+        // remove row and send DELETE request to delete visit from database.
         function doDelete(r){
             var tableElement = document.getElementById('visitTable')
             var rowElement = r.parentNode.parentNode
@@ -103,7 +108,7 @@
             deleteVisitAjax(rowElement.getAttribute("id"))
             tableElement.deleteRow(index)
         }
-
+        // clear form inputs after creating/updating visit so that old data isn't still there if user tries to create another visit or update another visit.
         function clearForm(){
             var form = document.getElementById('createUpdateForm')
             form.querySelector('select[name="country"]').value = ''
@@ -112,7 +117,7 @@
         }
 
         // ---- table functions ----
-
+        // add a visit to the table by creating a new row at the end (-1) and filling in the cells with visit data.
         function addVisitToTable(visit){
             var tableElement = document.getElementById('visitTable')
             var rowElement = tableElement.insertRow(-1)
@@ -127,7 +132,7 @@
             rowElement.insertCell(7).innerHTML = '<button class="btn btn-sm btn-warning" onclick="showUpdate(this)">Update</button>'
             rowElement.insertCell(8).innerHTML = '<button class="btn btn-sm btn-danger" onclick="doDelete(this)">Delete</button>'
         }
-
+        // read visit data from a table row and return it as an object. this is used to populate the update form when user clicks the update button on a visit. 
         function getVisitFromRow(rowElement){
             var visit = {}
             visit.id           = rowElement.getAttribute('id')
@@ -136,18 +141,19 @@
             return visit
         }
 
+        // set visit data in a table row. this is used to update the table after user updates a visit without having to reload the page and call getAllAjax() again.
         function setVisitInRow(rowElement, visit){
             rowElement.cells[5].firstChild.textContent = visit.date_visited
             rowElement.cells[6].firstChild.textContent = visit.notes
         }
-
+        // populate the create/update form with visit data. this is used when user clicks update button on a visit to fill the form with the visit's current data.
         function populateFormWithVisit(visit){
             var form = document.getElementById('createUpdateForm')
             form.querySelector('input[name="id"]').value           = visit.id
             form.querySelector('input[name="date_visited"]').value = visit.date_visited
             form.querySelector('input[name="notes"]').value        = visit.notes
         }
-
+        // read visit data from the create/update form and return it as an object. this is used to collect the updated data when user clicks the update button in the form.
         function getVisitFromForm(){
             var form = document.getElementById('createUpdateForm')
             var visit = {}
@@ -158,11 +164,11 @@
         }
 
         // ---- dropdown ----
-
+        // this function calls on the restful countries api to get all countris and show them alphabetically in a dropdown.
         function loadCountryDropdown(){
             // calls the REST countries API to populate the country dropdown
             $.ajax({
-                "url": "https://restcountries.com/v3.1/all?fields=name",
+                "url": "https://restcountries.com/v3.1/all?fields=name,cca3",
                 "method": "GET",
                 "dataType": "JSON",
                 "success": function(result){
@@ -174,8 +180,8 @@
                     select.innerHTML = '<option value="">-- Select a country --</option>'
                     for (var country of result){
                         var option = document.createElement('option')
-                        option.value = country.name.common
-                        option.text  = country.name.common
+                        option.value = country.cca3 // send country code to our backend
+                        option.text  = country.name.common // user still sees common name
                         select.appendChild(option)
                     }
                 },
@@ -186,7 +192,7 @@
         }
 
         // ---- ajax functions ----
-
+        // load the page, get all visits from the database and add them to the table.
         function getAllAjax(){
             $.ajax({
                 "url": "/visits",
@@ -202,7 +208,29 @@
                 }
             })
         }
-
+        // refresj the full table with a new GET request to show the updated list (otherwise just stays on update/create form).
+       function showAll(){
+            $.ajax({
+                "url": "/visits",
+                "method": "GET",
+                "dataType": "JSON",
+                "success": function(result){
+                    var tableElement = document.getElementById('visitTable')
+                    // clear table except header row
+                    while (tableElement.rows.length > 1){
+                        tableElement.deleteRow(1)
+                    }
+                    for (var visit of result){
+                        addVisitToTable(visit)
+                    }
+                    showViewAll()
+                },
+                "error": function(xhr, status, error){
+                    console.log("error: " + status + " msg: " + error)
+                }
+            })
+        }
+     // create new record with POST request
         function createVisitAjax(visit){
             $.ajax({
                 "url": "/visits",
@@ -211,16 +239,15 @@
                 "dataType": "JSON",
                 contentType: "application/json; charset=utf-8",
                 "success": function(result){
-                    addVisitToTable(result)
                     clearForm()
-                    showViewAll()
+                    showAll()
                 },
                 "error": function(xhr, status, error){
                     console.log("error: " + status + " msg: " + error)
                 }
             })
         }
-
+        // update existing record with PUT request
         function updateVisitAjax(visit){
             $.ajax({
                 "url": "/visits/" + encodeURI(visit.id),
@@ -236,7 +263,7 @@
                 }
             })
         }
-
+        // delete record with DELETE request
         function deleteVisitAjax(id){
             $.ajax({
                 "url": "/visits/" + encodeURI(id),
@@ -251,7 +278,7 @@
                 }
             })
         }
-
+        // when page loads, call getAllAjax() to populate the table with visits from the database.
         getAllAjax();
         </script>
     </html>
