@@ -7,56 +7,36 @@
 
 # Step 1 Create database. use Andrew's code.
 
-import mysql.connector
+import sqlite3
+import dbconfig as cfg
+database = cfg.database
 
-db = mysql.connector.connect(
-  host="localhost",
-  user="root",
-  password=""
-)
+con = sqlite3.connect(database)
+cur = con.cursor()
 
-cursor = db.cursor()
-
-cursor.execute("create DATABASE IF NOT EXISTS wsaa")
-
-db.close()
-cursor.close()
-
-# Step 2 create tables. Modify Andrew's code. 
-
-# connect to db again but this time specify the database we just created.
-db = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="",
-    database="wsaa"
-)
-# create a cursor object to execute SQL commands.
-cursor = db.cursor()
-
-# use SQL to create countries. this is master list of countries and their details. 
-cursor.execute("""
+# use sql to create countries. this is a master list of countries and their details.
+cur.execute("""
     CREATE TABLE IF NOT EXISTS countries (
-        id       INT AUTO_INCREMENT PRIMARY KEY,
-        name     VARCHAR(100) NOT NULL,
-        capital  VARCHAR(100),
-        region   VARCHAR(100),
-        flag_url VARCHAR(255)
+        id       INTEGER PRIMARY KEY AUTOINCREMENT,
+        name     TEXT NOT NULL,
+        capital  TEXT,
+        region   TEXT,
+        flag_url TEXT
     )
 """)
 
-# use sql to create visits. this will be populated by the user. it has foreign key to countries so we can link visits to specific countries.
-cursor.execute("""
+# use sql to create visits. this will be populated by the user. it has a foreign key to countries so we can link visits to specific countries.
+cur.execute("""
     CREATE TABLE IF NOT EXISTS visits (
-        id           INT AUTO_INCREMENT PRIMARY KEY,
-        date_visited DATE NOT NULL,
-        notes        VARCHAR(500),
-        country_id   INT,
+        id           INTEGER PRIMARY KEY AUTOINCREMENT,
+        date_visited TEXT NOT NULL,
+        notes        TEXT,
+        country_id   INTEGER,
         FOREIGN KEY (country_id) REFERENCES countries(id)
     )
 """)
 
+con.commit()
 print("Database and tables created successfully")
 
-db.close()
-cursor.close()
+con.close()

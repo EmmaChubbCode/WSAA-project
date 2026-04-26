@@ -2,14 +2,11 @@
 import requests
 from flask import Flask, jsonify, request, abort
 from flask_cors import CORS, cross_origin
-
-app = Flask(__name__)
-cors = CORS(app) # allow CORS for all domains on all routes.
-app.config['CORS_HEADERS'] = 'Content-Type'
-
 from visitDAO import visitDAO
 
 app = Flask(__name__, static_url_path='', static_folder='.')
+cors = CORS(app) # allow CORS for all domains on all routes.
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 @app.route('/')
 @cross_origin()
@@ -53,8 +50,6 @@ def createVisit():
     response = apiResponse.json()
     apiData = response[0] if isinstance(response, list) else response
 
-    print("status code:", apiResponse.status_code)   # <-- add here
-    print("response text:", apiResponse.text)
     # pull out the bits we want from the API response
     # you can see structure of the api response here: https://restcountries.com/v3.1/alpha/FRA
     countryData = {
@@ -115,5 +110,3 @@ def getAllCountries():
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-

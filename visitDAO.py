@@ -1,62 +1,57 @@
 # author: Emma Chubb
 # Description: this script contains the data access object for the visits table
-# mostly adapted from Andrew's code but updated to fit my two table design. 
+# adapted from Andrew's code but updated to fit my two table design.
+# switched from mysql to sqlite3 for pythonanywhere free tier compatibility.
+# docs: https://docs.python.org/3/library/sqlite3.html
 
-import mysql.connector # library to connect to sql db.
-import dbconfig as cfg # my config file wth my sql connection details.
+import sqlite3
+import dbconfig as cfg
 
-class VisitDAO: # 
+class VisitDAO:
     connection = ""
     cursor = ""
-    host =     ""
-    user =     ""
-    password = ""
     database = ""
 
-    # pull connection details from dbconfig.py. see: https://docs.python.org/3/reference/datamodel.html#object.__init__
+    # pull database path from dbconfig.py. see: https://docs.python.org/3/reference/datamodel.html#object.__init__
     def __init__(self):
-        self.host =     cfg.mysql['host']
-        self.user =     cfg.mysql['user']
-        self.password = cfg.mysql['password']
-        self.database = cfg.mysql['database']
+        self.database = cfg.database
 
-    # create cursor that can run SQL commands. see: https://dev.mysql.com/doc/connector-python/en/connector-python-api-mysqlcursor.html 
+    # create cursor that can run SQL commands.
+    # check_same_thread=False is needed for Flask which can use multiple threads.
+    # see: https://docs.python.org/3/library/sqlite3.html#sqlite3.connect
     def getcursor(self):
-        self.connection = mysql.connector.connect(
-            host=     self.host,
-            user=     self.user,
-            password= self.password,
-            database= self.database
-        )
+        self.connection = sqlite3.connect(self.database, check_same_thread=False)
         self.cursor = self.connection.cursor()
         return self.cursor
-    
-    # close cursor and connection to free up resources. see: https://stackoverflow.com/questions/53230079/why-should-one-use-functions-cursor-and-connection-close-in-python-after-connect 
-    def closeAll(self):
-        self.connection.close()
-        self.cursor.close()
 
-    # First define the methods for working with the country table. 
-    # we don't want to repeatedly add the same countries to this list if e.g. france is visited twice, so we need a method that checks if the country already exists before inserting.
+    # close cursor and connection to free up resources.
+    # see: https://stackoverflow.com/questions/53230079/why-should-one-use-functions-cursor-and-connection-close-in-python-after-connect
+    def closeAll(self):
+        self.cursor.close()
+        self.connection.close()
+
+    # First define the methods for working with the country table.
+    # we don't want to repeatedly add the same countries to this list if e.g. france is visited twice,
+    # so we need a method that checks if the country already exists before inserting.
 
     def getOrCreateCountry(self, countryData):
         # it first checks if the country is already in our database
         cursor = self.getcursor()
-        sql = "SELECT * FROM countries WHERE name = %s"  # look for country by name, %s as placeholder. 
-        cursor.execute(sql, (countryData['name'],))      # the comma makes it a tuple, required by mysql connector
-        result = cursor.fetchone()                        # fetchone returns a single row or None if not found: https://dev.mysql.com/doc/connector-python/en/connector-python-api-mysqlcursor-fetchone.html
+        # sqlite3 uses ? as placeholder instead of %s in mysql
+        sql = "SELECT * FROM countries WHERE name = ?"
+        cursor.execute(sql, (countryData['name'],))      # the comma makes it a tuple, required by sqlite3
+        result = cursor.fetchone()                        # fetchone returns a single row or None if not found: https://docs.python.org/3/library/sqlite3.html#sqlite3.Cursor.fetchone
 
-        if result: # if the fetchone returns something.
-            # country already exists in our db, no need to insert again
+        if result: # if fetchone returns something, country already exists
             self.closeAll()
             return self.convertToCountryDict(result)  # convert the row to a dictionary and return it
 
         # country not found so insert it into the countries table
-        sql = "INSERT INTO countries (name, capital, region, flag_url) VALUES (%s, %s, %s, %s)"
+        sql = "INSERT INTO countries (name, capital, region, flag_url) VALUES (?, ?, ?, ?)"
         values = (countryData['name'], countryData['capital'], countryData['region'], countryData['flag_url'])
         cursor.execute(sql, values)
         self.connection.commit()       # commit makes the insert permanent in the database
-        newid = cursor.lastrowid       # lastrowid give the auto generated id of the row we just inserted
+        newid = cursor.lastrowid       # lastrowid gives the auto generated id of the row we just inserted
         countryData['id'] = newid      # add the new id to the dictionary before returning it
         self.closeAll()
         return countryData
@@ -65,14 +60,14 @@ class VisitDAO: #
         # returns every row in the countries table as a list of dictionaries
         cursor = self.getcursor()
         cursor.execute("SELECT * FROM countries")
-        results = cursor.fetchall()    # fetchall returns all rows as a list of tuples fetchall: https://dev.mysql.com/doc/connector-python/en/connector-python-api-mysqlcursor-fetchall.html
+        results = cursor.fetchall()    # fetchall returns all rows as a list of tuples: https://docs.python.org/3/library/sqlite3.html#sqlite3.Cursor.fetchall
         returnArray = []
         for result in results:
             returnArray.append(self.convertToCountryDict(result))  # convert each row to a dictionary
         self.closeAll()
         return returnArray
 
-    # ok now the visit methods 
+    # ok now the visit methods
 
     def getAllVisits(self):
         cursor = self.getcursor()
@@ -100,7 +95,7 @@ class VisitDAO: #
                    countries.name, countries.capital, countries.region, countries.flag_url
             FROM visits
             JOIN countries ON visits.country_id = countries.id
-            WHERE visits.id = %s
+            WHERE visits.id = ?
         """
         cursor.execute(sql, (id,))
         result = cursor.fetchone()   # only expecting one row back
@@ -110,8 +105,8 @@ class VisitDAO: #
     def createVisit(self, visit):
         # inserts a new row into the visits table
         cursor = self.getcursor()
-        sql = "INSERT INTO visits (date_visited, notes, country_id) VALUES (%s, %s, %s)"
-        # .get('notes', '') means use the notes value if it exists, otherwise use empty string. see@ https://docs.python.org/3/library/stdtypes.html#dict.get
+        sql = "INSERT INTO visits (date_visited, notes, country_id) VALUES (?, ?, ?)"
+        # .get('notes', '') means use the notes value if it exists, otherwise use empty string. see: https://docs.python.org/3/library/stdtypes.html#dict.get
         values = (visit['date_visited'], visit.get('notes', ''), visit['country_id'])
         cursor.execute(sql, values)
         self.connection.commit()
@@ -120,25 +115,34 @@ class VisitDAO: #
         return visit
 
     def updateVisit(self, id, visit):
-        # updates an existing visit row - note we only allow changing date and notes because the country facts are fixed. 
-        # country cannot be changed on a visit, you would delete and recreate instead
+        """
+        Updates an existing visit record in the visits table.
+        Only date_visited and notes can be changed because the country facts are fixed.
+        Country cannot be changed on a visit, you would delete and recreate instead.
+        Parameters:
+            id (int): the id of the visit row to update
+            visit (dict): dictionary containing 'date_visited' and 'notes'
+        Docs:
+            SQL UPDATE: https://www.w3schools.com/sql/sql_update.asp
+            dict.get(): https://docs.python.org/3/library/stdtypes.html#dict.get
+        """
         cursor = self.getcursor()
-        sql = "UPDATE visits SET date_visited = %s, notes = %s WHERE id = %s"
+        sql = "UPDATE visits SET date_visited = ?, notes = ? WHERE id = ?"
         values = (visit['date_visited'], visit.get('notes', ''), id)
         cursor.execute(sql, values)
-        self.connection.commit()  # commit is required for any change that modifies data https://dev.mysql.com/doc/connector-python/en/connector-python-api-mysqlconnection-commit.html 
+        self.connection.commit()  # commit is required for any change that modifies data: https://docs.python.org/3/library/sqlite3.html#sqlite3.Connection.commit
         self.closeAll()
 
     def deleteVisit(self, id):
         # deletes a visit row by id
         cursor = self.getcursor()
-        sql = "DELETE FROM visits WHERE id = %s"
+        sql = "DELETE FROM visits WHERE id = ?"
         cursor.execute(sql, (id,))
         self.connection.commit()
         self.closeAll()
 
     def convertToCountryDict(self, row):
-        # mysql returns rows as plain tuples e.g. (1, 'France', 'Paris', 'Europe', 'flag.png')
+        # sqlite3 returns rows as plain tuples e.g. (1, 'France', 'Paris', 'Europe', 'flag.png')
         # this converts that tuple into a dictionary so it can be returned as JSON
         keys = ['id', 'name', 'capital', 'region', 'flag_url']
         return {keys[i]: row[i] for i in range(len(keys))}
@@ -149,7 +153,7 @@ class VisitDAO: #
         # the country details are nested inside their own dictionary within the visit
         return {
             'id':           row[0],
-            'date_visited': str(row[1]),  # convert date object to string so it can be JSONified
+            'date_visited': str(row[1]),  # convert to string so it can be JSONified
             'notes':        row[2],
             'country': {                  # nested dictionary for country details
                 'name':     row[3],
