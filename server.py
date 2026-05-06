@@ -1,4 +1,5 @@
 # description: A simple Flask server to handle API requests for the frontend.
+# mainly adapted from Andrew's code.
 import requests
 from flask import Flask, jsonify, request, abort
 from flask_cors import CORS, cross_origin
