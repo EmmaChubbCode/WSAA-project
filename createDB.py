@@ -12,6 +12,7 @@ import dbconfig as cfg
 database = cfg.database
 
 con = sqlite3.connect(database)
+con.execute("PRAGMA foreign_keys = ON")
 cur = con.cursor()
 
 # use sql to create countries. this is a master list of countries and their details.

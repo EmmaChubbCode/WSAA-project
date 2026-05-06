@@ -1,4 +1,6 @@
 # author: Emma Chubb
-# description: configures the db connection. it will be imported by other scripts to allow them to connect to the db. Adopted from Andrew's code.
 
-database = "travel.db"
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+database = os.path.join(BASE_DIR, "travel.db")
